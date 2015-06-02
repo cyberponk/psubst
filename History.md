@@ -1,5 +1,7 @@
 ### History ###
 
+2015/06/02 - Version 3.0 (Cyberponk)
+
 2014/09/17 - Version 2.6 Stable.
 Fixed [Issue 10](https://code.google.com/p/psubst/issues/detail?id=10): Missing the final parenthesis ) of the path after restart
 
