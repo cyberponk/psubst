@@ -3,31 +3,6 @@
 
 ---
 
-
-## Psubst'd drive are not mapped ##
-
-On some systems psubst'd drives are not mapped if psubst was run under privileges of regular users. It reguires to be run twice as Administrator and a regular user. See a workaround in [issue 4](https://code.google.com/p/psubst/issues/detail?id=4):
-
-> First Run As Admin:
-```
-  psubst Z: "\\192.168.1.193\raid" /P
-```
-> That will create the registry entry.
-
-> Then as normal user:
-```
-  psubst Z: "\\192.168.1.193\raid"
-```
-
-## BSOD ##
-
-[issue 5](https://code.google.com/p/psubst/issues/detail?id=5) had been created to inform that sometimes usage of the tool led to BSOD. In fact this is not direct influence of different programs each other. Moreover, it may be the specific behaviour of a single program. From the description of the issue we can see that BSOD appears only after applying this script, reboot and login.
-
-Harald Eiermann said:
-> I faced a BSOD when using the script on a system with Trend Micro 10.x virus scan. It worked with Trend Micro virus scanner version 8.x before.
-
-It seems that Trend Micro 10.x has troubles working with permanently subst'd drives. This presumption can be checked by adding manually an entry to the Registry (not using the script) and rebooting/logging in. If BSOD appears again this will be proof of it.
-
 ## LABELING ##
 
 [issue 6](https://code.google.com/p/psubst/issues/detail?id=6). Once created a subst'ed drive has the same label and the same total, used and free sizes. This is not bug of the `SUBST`/`PSUBST` tools but feature of Windows when subst'ed drives inherit properties from the original drive.
@@ -102,9 +77,3 @@ So we could use the following workaround solution:
 subst #: \\servername\share
 subst Z: #:\
 ```
-
-## Missing the final parenthesis ) of the path after restart ##
-
-[jpach4](https://code.google.com/u/110168451143980461231/) has informed about the bug when the folder contains final parenthesis ([issue 10](https://code.google.com/p/psubst/issues/detail?id=10)).
-
-This bug has been fixed in the revision [r36](https://code.google.com/p/psubst/source/detail?r=36) and the new version 2.6 is available for downloading from the [FossHub Downloads](http://code.fosshub.com/psubst/downloads) page.
