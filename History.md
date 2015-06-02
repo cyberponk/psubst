@@ -1,6 +1,12 @@
 ### History ###
 
 2015/06/02 - Version 3.0 (Cyberponk). Redesigned from scratch.
+ * Automatically requests for elevation when required
+ * Accepts arguments in any random order
+ * /F argument for forcing a persistent mapping
+ * Accepts paths with parenthesis
+ * Error handling with proper errorlevel return codes
+ * Uses local environment variables
 
 2014/09/17 - Version 2.6 Stable.
 Fixed [Issue 10](https://code.google.com/p/psubst/issues/detail?id=10): Missing the final parenthesis ) of the path after restart
