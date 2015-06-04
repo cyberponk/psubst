@@ -98,7 +98,7 @@ goto:eof &:: End ProcessArgument
 goto:eof &:: End CheckPersistent 
 
 :AddPersistent
-  reg add !_RegQuery! /v !_Drive! /t REG_SZ /d "!_Path!" /F
+  reg add !_RegQuery! /v !_Drive! /t REG_SZ /d "\??\!_Path!" /F
 goto:eof &:: End AddPersistent
 
 :RemovePersistent
