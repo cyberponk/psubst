@@ -1,8 +1,7 @@
 @echo off
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ::PSubst3
-:: By:  ildar-shaimordanov	v2 - 02/09/2008
-:: 	Cyberponk		v3 - 02/06/2015
+:: By:  Cyberponk		v3 - 02/06/2015
 :: 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 setlocal ENABLEEXTENSIONS ENABLEDELAYEDEXPANSION
