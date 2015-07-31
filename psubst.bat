@@ -1,7 +1,8 @@
 @echo off
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ::PSubst3
-:: By:  Cyberponk		v3 - 02/06/2015
+:: By:  Cyberponk	v3.01 - 30/07/2015 - Updated RequestAdminElevation v1.2, added pause on exit
+::		          	v3    - 02/06/2015
 :: 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 setlocal ENABLEEXTENSIONS ENABLEDELAYEDEXPANSION
@@ -74,13 +75,12 @@ endlocal & goto:eof
     if "%_IsPersistent%"=="TRUE" (set _Error=Could not remove registry entry &goto:ExitWithError) else (ver >nul)
 
 :end
-endlocal & goto:eof
+pause & endlocal & goto:eof
 
 :ExitWithError
     echo/ERROR: %_Error%
     echo/ 
     fc;: 2>nul
-    pause
 goto:end
 
 :ProcessArgument
@@ -139,6 +139,8 @@ setlocal ENABLEDELAYEDEXPANSION & set "_FilePath=%~1"
   if NOT EXIST "!_FilePath!" (echo/Read RequestAdminElevation usage information)
   :: UAC.ShellExecute only works with 8.3 filename, so use %~s1
   set "_FN=_%~ns1" & echo/%TEMP%| findstr /C:"(" >nul && (echo/ERROR: %%TEMP%% path can not contain parenthesis &endlocal &fc;: 2>nul & goto:eof)
+  :: Check if running from a mapped drive, exit with error if true
+  (net use %~d1) >nul 2>&1 && (echo/ERROR: RequestAdminElevation does not work inside mapped drives. Run from a local drive or UNC Path. &pause &endlocal &fc;: 2>nul & goto:eof)
   :: Remove parenthesis from the temp filename
   set _FN=%_FN:(=%
   set _vbspath="%temp:~%\%_FN:)=%.vbs" & set "_batpath=%temp:~%\%_FN:)=%.bat"
