@@ -1,7 +1,8 @@
 @echo off
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ::PSubst3
-:: By:  Cyberponk	v3.01 - 30/07/2015 - Updated RequestAdminElevation v1.2, added pause on exit
+:: By:  Cyberponk	v3.02 - 01/08/2015 - Updated RequestAdminElevation v1.3
+:: 			v3.01 - 30/07/2015 - Updated RequestAdminElevation v1.2, added pause on exit
 ::		          	v3    - 02/06/2015
 :: 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -120,7 +121,9 @@ goto:eof &:: End PrintDrives
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :RequestAdminElevation FilePath %* || goto:eof
 :: 
-:: By:   Cyberponk, V1.1 - 01/06/2015
+:: By:   Cyberponk, 	v1.3 - 01/08/2015 - Fixed not returning to original folder after elevation successful
+:: 			v1.2 - 30/07/2015 - Added error message when running from mapped drive
+::			v1.1 - 01/06/2015
 :: 
 :: Func: opens an admin elevation prompt. If elevated, runs everything after the function call, with elevated rights.
 :: Returns: -1 if elevation was requested
@@ -130,17 +133,18 @@ goto:eof &:: End PrintDrives
 :: USAGE:
 :: If function is copied to a batch file:
 ::     call :RequestAdminElevation "%~dpf0" %* || goto:eof
-:: If called as an external library (from a separatef file):
-::     set "_DeleteOnExit=0" & call :RequestAdminElevation "%~dpf0" %* || goto:eof
+::
+:: If called as an external library (from a separate batch file):
+::     set "_DeleteOnExit=0" on Options
+::     (call :RequestAdminElevation "%~dpf0" %* || goto:eof) && CD /D %CD%
+::
 :: If called from inside another CALL, you must set "_ThisFile=%~dpf0" at the beginning of the file
 ::     call :RequestAdminElevation "%_ThisFile%" %* || goto:eof
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 setlocal ENABLEDELAYEDEXPANSION & set "_FilePath=%~1"
   if NOT EXIST "!_FilePath!" (echo/Read RequestAdminElevation usage information)
   :: UAC.ShellExecute only works with 8.3 filename, so use %~s1
-  set "_FN=_%~ns1" & echo/%TEMP%| findstr /C:"(" >nul && (echo/ERROR: %%TEMP%% path can not contain parenthesis &endlocal &fc;: 2>nul & goto:eof)
-  :: Check if running from a mapped drive, exit with error if true
-  (net use %~d1) >nul 2>&1 && (echo/ERROR: RequestAdminElevation does not work inside mapped drives. Run from a local drive or UNC Path. &pause &endlocal &fc;: 2>nul & goto:eof)
+  set "_FN=_%~ns1" & echo/%TEMP%| findstr /C:"(" >nul && (echo/ERROR: %%TEMP%% path can not contain parenthesis &pause &endlocal &fc;: 2>nul & goto:eof)
   :: Remove parenthesis from the temp filename
   set _FN=%_FN:(=%
   set _vbspath="%temp:~%\%_FN:)=%.vbs" & set "_batpath=%temp:~%\%_FN:)=%.bat"
@@ -151,9 +155,9 @@ setlocal ENABLEDELAYEDEXPANSION & set "_FilePath=%~1"
   if "%errorlevel%" NEQ "0" goto :_getElevation
 
   :: Elevation successful
-  (if exist %_vbspath% ( del %_vbspath% )) & (if exist %_batpath% ( del %_batpath% )) & CD /D "%~dp1"
-  :: Set ERRORLEVEL 0 and exit
-  endlocal & ver >nul & goto:eof
+  (if exist %_vbspath% ( del %_vbspath% )) & (if exist %_batpath% ( del %_batpath% )) 
+  :: Set ERRORLEVEL 0, set original folder and exit
+  endlocal & CD /D "%~dp1" & ver >nul & goto:eof
 
   :_getElevation
   echo/Requesting elevation...
@@ -162,11 +166,11 @@ setlocal ENABLEDELAYEDEXPANSION & set "_FilePath=%~1"
   echo/UAC.ShellExecute "%_batpath%", "", "", "runas", 1 >> %_vbspath% & echo/wscript.Quit(1)>> %_vbspath%
   :: Try to create %_batpath% file. If failed, exit with ERRORLEVEL 1
   echo/@%* > "%_batpath%" || (echo/&echo/Unable to create %_batpath% & endlocal &md; 2>nul &goto:eof)
+  echo/@if %%errorlevel%%==9009 (echo/Admin user could not read the batch file. If running from a mapped drive or UNC path, check if Admin user can read it.) ^& @if %%errorlevel%% NEQ 0 pause >> "%_batpath%"
+
   :: Run %_vbspath%, that calls %_batpath%, that calls the original file
   %_vbspath% && (echo/&echo/Failed to run VBscript %_vbspath% &endlocal &md; 2>nul & goto:eof)
   
   :: Vbscript has been run, exit with ERRORLEVEL -1
   echo/&echo/Elevation was requested on a new CMD window &endlocal &fc;: 2>nul & goto:eof
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-
