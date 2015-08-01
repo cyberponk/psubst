@@ -1,6 +1,6 @@
 @echo off
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-::PSubst3
+::PSubst
 :: By:  Cyberponk	v3.02 - 01/08/2015 - Updated RequestAdminElevation v1.3
 :: 			v3.01 - 30/07/2015 - Updated RequestAdminElevation v1.2, added pause on exit
 ::		          	v3    - 02/06/2015
