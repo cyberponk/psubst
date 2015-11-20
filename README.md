@@ -1,13 +1,5 @@
 # Persistent SUBST command #
 
-[History](History.md)
-
-[Issues and troubleshooting](IssuesAndTroubleshooting.md)
-
-[Download](http://code.fosshub.com/psubst/downloads)
-
-## _Abstract_ ##
-
 Works the same way as command.com´s native SUBST command, but in a reboot-persistent manner.
 
 ## Purpose ##
