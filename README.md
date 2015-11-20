@@ -8,7 +8,7 @@
 
 ## _Abstract_ ##
 
-_Works the same way as command.com´s native SUBST command, but in a reboot-persistent manner.
+Works the same way as command.com´s native SUBST command, but in a reboot-persistent manner.
 
 ## Purpose ##
 
