@@ -1,11 +1,16 @@
 @echo off
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-::PSubst
-:: By:  Cyberponk	v3.02 - 01/08/2015 - Updated RequestAdminElevation v1.3
+set 	PSubst_Name=PSubst3
+set 	PSubst_Author=by Cyberponk
+:: Changelog:
+set PSubst_Version=v3.03 - 20/11/2015
+::			v3.03 - 20/11/2015 - Minor string modifications, removed the need of /P argument
+::			v3.02 - 01/08/2015 - Updated RequestAdminElevation v1.3
 :: 			v3.01 - 30/07/2015 - Updated RequestAdminElevation v1.2, added pause on exit
-::		          	v3    - 02/06/2015
+::		  v3    - 02/06/2015
 :: 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+set PSubst_Header=%PSubst_Name% %PSubst_Version% - %PSubst_Author%
 setlocal ENABLEEXTENSIONS ENABLEDELAYEDEXPANSION
 set "_ThisFile=%~dpf0" &set "_Drive=" &set "_Path=" &set "_Persistent=" &set "_Delete=" &set "_Force="
 set _RegQuery="HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\DOS Devices"
@@ -15,25 +20,23 @@ if "%~1" == "" goto :PrintDrives
 goto :main
 
 :ShowInfo
-  echo/PSubst v3.0 - 02/06/2015
-  echo/ Associates a path with a drive letter.
-  echo/ Manages persistent substituted ^(virtual^) drives.
+  echo/%PSubst_Header%
+  echo/ Manages reboot-persistent SUBST'ed ^(virtual^) drives.
 :ShowUsage
   echo/
-  echo/ PSUBST  [drive1: [drive2:]path] [/P] [/F]
+  echo/ PSUBST  [drive1: [drive2:]path] [/F]
   echo/ PSUBST  drive1: /D
   echo/
-  echo/   drive1:        Specifies the new virtual drive.
+  echo/   drive1:        Specifies the new reboot-persistent virtual drive.
   echo/   [drive2:]path  Specifies the source path for the virtual drive.
   echo/
-  echo/   /D             Deletes a substituted ^(virtual^) drive.
-  echo/   /P             Makes the substituted drive persistent after boot
-  echo/   /F             Forces the overwriting of a persistent drive letter
+  echo/   /D             Deletes a ^(virtual^) drive (whether it is reboot-persistent or not).
+  echo/   /F             Forces the overwriting of a reboot-persistent drive letter
   echo/
   echo/ Returns:
   echo/   -1 or 1       An error occured
   echo/    0            Command successfull
-  echo/ Type SUBST with no parameters to display a list of current  drives.
+  echo/ Type SUBST with no parameters to display a list of created virtual drives.
 endlocal & goto:eof
 
 :main
@@ -55,8 +58,7 @@ endlocal & goto:eof
     :: Check if persistent drive already exists, and if _Force not set, exit with error
     if "%_IsPersistent%"=="TRUE" (if "%_Force%" NEQ "TRUE" (set _Error=Persistent Drive Letter already in use - use /F option to force overwrite &goto:ExitWithError))
     subst !_Drive! "!_Path!"
-    :: If Persistent flag is set, add registry entry
-    if "%_Persistent%" NEQ "TRUE" goto:end
+    :: Add registry entry
       call :RequestAdminElevation "!_ThisFile!" %* || goto:eof )
       call :AddPersistent
       call :CheckPersistent
@@ -85,7 +87,6 @@ pause & endlocal & goto:eof
 goto:end
 
 :ProcessArgument
-  if /i "!_Arg!"=="/P " (set "_Persistent=TRUE" & goto:eof)    &:: Check for /P flag
   if /i "!_Arg!"=="/D " (set "_Delete=TRUE"     & goto:eof)    &:: Check for /D flag
   if /i "!_Arg!"=="/F " (set "_Force=TRUE"      & goto:eof)    &:: Check for /F flag
     
@@ -106,10 +107,13 @@ goto:eof &:: End AddPersistent
 goto:eof &:: End RemovePersistent
 
 :PrintDrives
-  echo/SUBSTed drives:
+  echo/%PSubst_Header%
+  echo  Use /? argument for usage information
+  echo/
+  echo/*SUBSTed drives currently set:
   subst
   echo/
-  echo/Persistent mappings:
+  echo/*Reboot-persistent virtual drives currently set:
   for /f "tokens=1,2,*" %%a in ( 'reg query !_RegQuery! ^| findstr ??' ) do (
     set "_RegPath=%%~c"
     set "_RegPath=!_RegPath:\??\=!"
