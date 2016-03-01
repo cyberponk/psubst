@@ -10,6 +10,7 @@ The goal is to create a script that can manage reboot-persistent virtual drive m
 ## When can this be used? ##
 
   * Temporary stub when the physical drive is missing;
+  * Mapping Network drives
   * Operational system limitation for the size of filename (256 characters);
   * Working of some application within own space;
   * Emulation of other operational systems.
@@ -23,4 +24,3 @@ The goal is to create a script that can manage reboot-persistent virtual drive m
   * [C++ coded PSUBST (by Alexander Telyatnikov)](http://alter.org.ua/en/soft/win/psubst/)
   * [Overview of file systems FAT, HPFS and NTFS (Microsoft knowledge base page in Russian)](http://support.microsoft.com/kb/100108)
   * [How NTFS Works](http://technet.microsoft.com/en-us/library/cc781134.aspx)
-  * [The same text in Russian](http://debugger.ru/articles/psubst)
