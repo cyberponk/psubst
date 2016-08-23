@@ -125,7 +125,9 @@ goto:eof &:: End PrintDrives
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :RequestAdminElevation FilePath %* || goto:eof
 :: 
-:: By:   Cyberponk, 	v1.3 - 01/08/2015 - Fixed not returning to original folder after elevation successful
+:: By:   Cyberponk, 	v1.5 - 10/06/2016 - Changed the admin rights test method from cacls to fltmc
+::			v1.4 - 17/05/2016 - Added instructions for arguments with ! char
+::			v1.3 - 01/08/2015 - Fixed not returning to original folder after elevation successful
 :: 			v1.2 - 30/07/2015 - Added error message when running from mapped drive
 ::			v1.1 - 01/06/2015
 :: 
@@ -144,6 +146,11 @@ goto:eof &:: End PrintDrives
 ::
 :: If called from inside another CALL, you must set "_ThisFile=%~dpf0" at the beginning of the file
 ::     call :RequestAdminElevation "%_ThisFile%" %* || goto:eof
+::
+:: If you need to use the ! char in the arguments, the calling must be done like this, and afterwards you must use %args% to get the correct arguments:
+::      set "args=%* "
+::      call :RequestAdminElevation .....   use one of the above but replace the %* with %args:!={a)%
+::      set "args=%args:{a)=!%" 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 setlocal ENABLEDELAYEDEXPANSION & set "_FilePath=%~1"
   if NOT EXIST "!_FilePath!" (echo/Read RequestAdminElevation usage information)
@@ -153,10 +160,8 @@ setlocal ENABLEDELAYEDEXPANSION & set "_FilePath=%~1"
   set _FN=%_FN:(=%
   set _vbspath="%temp:~%\%_FN:)=%.vbs" & set "_batpath=%temp:~%\%_FN:)=%.bat"
 
-  :: Test if elevated
-  >nul 2>&1 "%SYSTEMROOT%\system32\cacls.exe" "%SYSTEMROOT%\system32\config\system"
-  :: If error flag set, we do not have elevation
-  if "%errorlevel%" NEQ "0" goto :_getElevation
+  :: Test if we gave admin rights
+  fltmc >nul 2>&1 || goto :_getElevation
 
   :: Elevation successful
   (if exist %_vbspath% ( del %_vbspath% )) & (if exist %_batpath% ( del %_batpath% )) 
@@ -170,7 +175,7 @@ setlocal ENABLEDELAYEDEXPANSION & set "_FilePath=%~1"
   echo/UAC.ShellExecute "%_batpath%", "", "", "runas", 1 >> %_vbspath% & echo/wscript.Quit(1)>> %_vbspath%
   :: Try to create %_batpath% file. If failed, exit with ERRORLEVEL 1
   echo/@%* > "%_batpath%" || (echo/&echo/Unable to create %_batpath% & endlocal &md; 2>nul &goto:eof)
-  echo/@if %%errorlevel%%==9009 (echo/Admin user could not read the batch file. If running from a mapped drive or UNC path, check if Admin user can read it.) ^& @if %%errorlevel%% NEQ 0 pause >> "%_batpath%"
+  echo/@if %%errorlevel%%==9009 (echo/^&echo/Admin user could not read the batch file. If running from a mapped drive or UNC path, check if Admin user can read it.)^&echo/^& @if %%errorlevel%% NEQ 0 pause >> "%_batpath%"
 
   :: Run %_vbspath%, that calls %_batpath%, that calls the original file
   %_vbspath% && (echo/&echo/Failed to run VBscript %_vbspath% &endlocal &md; 2>nul & goto:eof)
