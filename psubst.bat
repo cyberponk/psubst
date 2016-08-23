@@ -3,7 +3,8 @@
 set 	PSubst_Name=PSubst3
 set 	PSubst_Author=by Cyberponk
 :: Changelog:
-set PSubst_Version=v3.03 - 20/11/2015
+set PSubst_Version=v3.10 - 23/08/2016
+::			v3.10 - 23/08/2016 - Updated RequestAdminElevation function to v1.5
 ::			v3.03 - 20/11/2015 - Minor string modifications, removed the need of /P argument
 ::			v3.02 - 01/08/2015 - Updated RequestAdminElevation v1.3
 :: 			v3.01 - 30/07/2015 - Updated RequestAdminElevation v1.2, added pause on exit
