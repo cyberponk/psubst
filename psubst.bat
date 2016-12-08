@@ -3,7 +3,8 @@
 set 	PSubst_Name=PSubst3
 set 	PSubst_Author=by Cyberponk
 :: Changelog:
-set PSubst_Version=v3.10 - 23/08/2016
+set PSubst_Version=v3.20 - 08/12/2016
+::      v3.20 - 08/12/2016 - Fixed reg add bug when path ended with \ char. Other minor bugs fixed.
 ::			v3.10 - 23/08/2016 - Updated RequestAdminElevation function to v1.5
 ::			v3.03 - 20/11/2015 - Minor string modifications, removed the need of /P argument
 ::			v3.02 - 01/08/2015 - Updated RequestAdminElevation v1.3
@@ -15,6 +16,7 @@ set PSubst_Header=%PSubst_Name% %PSubst_Version% - %PSubst_Author%
 setlocal ENABLEEXTENSIONS ENABLEDELAYEDEXPANSION
 set "_ThisFile=%~dpf0" &set "_Drive=" &set "_Path=" &set "_Persistent=" &set "_Delete=" &set "_Force="
 set _RegQuery="HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\DOS Devices"
+set LF=^&echo.
 
 if "%~1" == "/?" goto :ShowInfo
 if "%~1" == "" goto :PrintDrives
@@ -37,7 +39,7 @@ goto :main
   echo/ Returns:
   echo/   -1 or 1       An error occured
   echo/    0            Command successfull
-  echo/ Type SUBST with no parameters to display a list of created virtual drives.
+  echo/ Type PSUBST with no parameters to display a list of created virtual drives.
 endlocal & goto:eof
 
 :main
@@ -55,10 +57,12 @@ endlocal & goto:eof
 
   :CreateDrive
     echo/Creating drive !_Drive!...
-    if not exist "!_Path!" (set _Error=Source path not chosen or invalid ^&call:ShowUsage &goto:ExitWithError)
+    if NOT exist "%_Path%" (set _Error=Source path not chosen or invalid. For help type psubst /? &goto:ExitWithError)
+    if "%_Path:~-1%"=="\" if NOT "%_Path:~-2%"==":\" set "_Path=%_Path:~0,-1%"
     :: Check if persistent drive already exists, and if _Force not set, exit with error
     if "%_IsPersistent%"=="TRUE" (if "%_Force%" NEQ "TRUE" (set _Error=Persistent Drive Letter already in use - use /F option to force overwrite &goto:ExitWithError))
-    subst !_Drive! "!_Path!"
+    if "%_Force%"=="TRUE" (subst %_Drive% /D >nul && echo A reboot may be required if drive letter is not mapped correctly by now.)
+    subst %_Drive% "%_Path%"
     :: Add registry entry
       call :RequestAdminElevation "!_ThisFile!" %* || goto:eof )
       call :AddPersistent
@@ -69,14 +73,13 @@ endlocal & goto:eof
 :RemoveDrive
     echo/Removing drive !_Drive!...
     if "!_Path!" NEQ "" (set _Error=Do not type path and /D arguments at the same time ^&call:ShowUsage &goto:ExitWithError)
-
     :: Delete Subst drive
     subst %_Drive% /D
     :: If drive is persistent, get admin rights and remove registry entry
-    if "%_IsPersistent%"=="TRUE" ((call :RequestAdminElevation "!_ThisFile!" %* || goto:eof ) & call :RemovePersistent )
+    if "%_IsPersistent%"=="TRUE" ((call :RequestAdminElevation "!_ThisFile!" %* || goto:eof ) & call :RemovePersistent ) else (echo Drive was not persistent.&goto:end)
     :: Check if persistent drive removal was successfull
     Call :CheckPersistent
-    if "%_IsPersistent%"=="TRUE" (set _Error=Could not remove registry entry &goto:ExitWithError) else (ver >nul)
+    if "%_IsPersistent%"=="TRUE" (set _Error=Could not remove registry entry &goto:ExitWithError) else (echo Persistent drive removed. A reboot may be required to completely remove the drive letter.&ver >nul)
 
 :end
 pause & endlocal & goto:eof
@@ -100,7 +103,8 @@ goto:eof &:: End ProcessArgument
 goto:eof &:: End CheckPersistent 
 
 :AddPersistent
-  reg add !_RegQuery! /v !_Drive! /t REG_SZ /d "\??\!_Path!" /F
+  if "%_Path:~-1%"=="\" set "_Path=%_Path%\"
+  reg add %_RegQuery%  /F /v %_Drive% /t REG_SZ /d "\??\%_Path%"
 goto:eof &:: End AddPersistent
 
 :RemovePersistent
