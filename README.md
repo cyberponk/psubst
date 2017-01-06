@@ -5,13 +5,20 @@ Works the same way as command.com´s native SUBST command, but in a reboot-persi
 ## Purpose ##
 
 Command.com´s native `SUBST` command is a great tool, but every drive mapping get´s erased when windows reboots.
-The goal is to create a script that can manage reboot-persistent virtual drive mappings.
+PSubst creates reboot-persistent virtual drive mappings.
+
+To do this, PSubst requires administrative rights, so there is an in-built elevation function that is called when needed.
+
+## Usage ##
+
+Run `psubst.bat /?` for usage instructions.
+Note: arguments can be specified in any order.
 
 ## When can this be used? ##
 
-  * Temporary stub when the physical drive is missing;
+  * Temporary subst when the physical drive is missing;
   * Mapping Network drives
-  * Operational system limitation for the size of filename (256 characters);
+  * Bypass Windows limitation for the size of filepath (256 characters);
   * Working of some application within own space;
   * Emulation of other operational systems.
   * Personal files organization
