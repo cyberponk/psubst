@@ -1,15 +1,16 @@
 @echo off
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-set 	PSubst_Name=PSubst3
-set 	PSubst_Author=by Cyberponk
+set PSubst_Name=PSubst3
+set PSubst_Author=by Cyberponk
 :: Changelog:
-set PSubst_Version=v3.20 - 08/12/2016
-::      v3.20 - 08/12/2016 - Fixed reg add bug when path ended with \ char. Other minor bugs fixed.
-::			v3.10 - 23/08/2016 - Updated RequestAdminElevation function to v1.5
-::			v3.03 - 20/11/2015 - Minor string modifications, removed the need of /P argument
-::			v3.02 - 01/08/2015 - Updated RequestAdminElevation v1.3
-:: 			v3.01 - 30/07/2015 - Updated RequestAdminElevation v1.2, added pause on exit
-::		  v3    - 02/06/2015
+set PSubst_Version=v3.30 - 06/01/2025
+::		   v3.30 - 06/01/2025 - Updates RequestAdminElevation to v1.6
+::		   v3.20 - 08/12/2016 - Fixed reg add bug when path ended with \ char. Other minor bugs fixed.
+::		   v3.10 - 23/08/2016 - Updated RequestAdminElevation function to v1.5
+::		   v3.03 - 20/11/2015 - Minor string modifications, removed the need of /P argument
+::		   v3.02 - 01/08/2015 - Updated RequestAdminElevation v1.3
+::		   v3.01 - 30/07/2015 - Updated RequestAdminElevation v1.2, added pause on exit
+::		   v3    - 02/06/2015
 :: 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 set PSubst_Header=%PSubst_Name% %PSubst_Version% - %PSubst_Author%
@@ -56,7 +57,7 @@ endlocal & goto:eof
   if "%_Delete%"=="TRUE" goto:RemoveDrive
 
   :CreateDrive
-    echo/Creating drive !_Drive!...
+    echo/Creating drive %_Drive%...
     if NOT exist "%_Path%" (set _Error=Source path not chosen or invalid. For help type psubst /? &goto:ExitWithError)
     if "%_Path:~-1%"=="\" if NOT "%_Path:~-2%"==":\" set "_Path=%_Path:~0,-1%"
     :: Check if persistent drive already exists, and if _Force not set, exit with error
@@ -64,7 +65,7 @@ endlocal & goto:eof
     if "%_Force%"=="TRUE" (subst %_Drive% /D >nul && echo A reboot may be required if drive letter is not mapped correctly by now.)
     subst %_Drive% "%_Path%"
     :: Add registry entry
-      call :RequestAdminElevation "!_ThisFile!" %* || goto:eof )
+      call :RequestAdminElevation "%_ThisFile%" %* || goto:eof )
       call :AddPersistent
       call :CheckPersistent
       if "%_IsPersistent%" NEQ "TRUE" (set _Error=Could not create registry entry &goto:ExitWithError) else (fc;: 2>nul)
@@ -74,7 +75,7 @@ endlocal & goto:eof
     echo/Removing drive !_Drive!...
     if "!_Path!" NEQ "" (set _Error=Do not type path and /D arguments at the same time ^&call:ShowUsage &goto:ExitWithError)
     :: Delete Subst drive
-    subst %_Drive% /D
+    subst %_Drive% /D >nul
     :: If drive is persistent, get admin rights and remove registry entry
     if "%_IsPersistent%"=="TRUE" ((call :RequestAdminElevation "!_ThisFile!" %* || goto:eof ) & call :RemovePersistent ) else (echo Drive was not persistent.&goto:end)
     :: Check if persistent drive removal was successfull
@@ -85,7 +86,7 @@ endlocal & goto:eof
 pause & endlocal & goto:eof
 
 :ExitWithError
-    echo/ERROR: %_Error%
+    echo/%LF%ERROR: %_Error%
     echo/ 
     fc;: 2>nul
 goto:end
@@ -99,7 +100,7 @@ goto:end
 goto:eof &:: End ProcessArgument
 
 :CheckPersistent 
-  reg query !_RegQuery! /v !_Drive! >nul 2>&1 && (set "_IsPersistent=TRUE" ) || ( set "_IsPersistent=")
+  reg query %_RegQuery% /v %_Drive% >nul 2>&1 && (set "_IsPersistent=TRUE" ) || ( set "_IsPersistent=")
 goto:eof &:: End CheckPersistent 
 
 :AddPersistent
@@ -108,7 +109,7 @@ goto:eof &:: End CheckPersistent
 goto:eof &:: End AddPersistent
 
 :RemovePersistent
-  reg delete %_RegQuery% /v %_Drive% /F
+  reg delete %_RegQuery% /F /v %_Drive% 
 goto:eof &:: End RemovePersistent
 
 :PrintDrives
@@ -130,7 +131,8 @@ goto:eof &:: End PrintDrives
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :RequestAdminElevation FilePath %* || goto:eof
 :: 
-:: By:   Cyberponk, 	v1.5 - 10/06/2016 - Changed the admin rights test method from cacls to fltmc
+:: By:   Cyberponk, 	v1.6 - 05/05/2023 - Fixed bug when batch filename contained spaces
+::			v1.5 - 10/06/2016 - Changed the admin rights test method from cacls to fltmc
 ::			v1.4 - 17/05/2016 - Added instructions for arguments with ! char
 ::			v1.3 - 01/08/2015 - Fixed not returning to original folder after elevation successful
 :: 			v1.2 - 30/07/2015 - Added error message when running from mapped drive
@@ -169,7 +171,7 @@ setlocal ENABLEDELAYEDEXPANSION & set "_FilePath=%~1"
   fltmc >nul 2>&1 || goto :_getElevation
 
   :: Elevation successful
-  (if exist %_vbspath% ( del %_vbspath% )) & (if exist %_batpath% ( del %_batpath% )) 
+  (if exist %_vbspath% ( del %_vbspath% )) & (if exist "%_batpath%" ( del "%_batpath%" )) 
   :: Set ERRORLEVEL 0, set original folder and exit
   endlocal & CD /D "%~dp1" & ver >nul & goto:eof
 
